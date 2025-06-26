@@ -6,7 +6,7 @@ from math import gcd
 import numpy as np
 from math import pi
 
-QiskitRuntimeService.save_account(channel='ibm_quantum',token='',overwrite=True)
+QiskitRuntimeService.save_account(channel='ibm_quantum',token='73400f3fc9487c07ea601ce35f3c6a1dd052fe253283f8afced43eb1e1ce4e12852c8a281639229d84a6ffdd16034e30dda16dd7f42e0799373860910190bce1',overwrite=True)
 service = QiskitRuntimeService()
 
 
@@ -43,10 +43,14 @@ def quantum_period_finding(N, a):
         qc.h(qreg_q[qubit])
 
     # Apply controlled modular exponentiation
-    apply_controlled_modular_exponentiation(qc, a, N, n_qubits, ctrl_start=0, tgt_start=n_qubits)
+    #apply_controlled_modular_exponentiation(qc, a, N, n_qubits, ctrl_start=0, tgt_start=n_qubits)
+    qc.cx(qreg_q[3], qreg_q[2])
+    qc.cx(qreg_q[0], qreg_q[3])
+    qc.ccx(qreg_q[0],qreg_q[2],qreg_q[3])
 
     # Inverse QFT to extract period
-    qc.append(QuantumCircuit(n_qubits).inverse(annotated=False).to_gate(label="IQFT"), range(n_qubits))
+    # qc.append(QuantumCircuit(n_qubits).inverse(annotated=False).to_gate(label="IQFT"), range(n_qubits))
+    qc.append(QFT(2, inverse=True, do_swaps=True).to_gate(),[qreg_q[0],qreg_q[1]])
 
 
     # Measure the first register

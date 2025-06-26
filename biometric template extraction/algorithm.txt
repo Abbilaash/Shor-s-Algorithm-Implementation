@@ -1,0 +1,35 @@
+Algorithm to convert fingerprint to RSA keys
+
+step 1:
+- pre-processing (target: normalize the image to allow consistent feature extraction)
+    - convert img to grayscale
+    - resize image to fized size 128x128
+    - apply thresholding to binarize image
+
+step 2:
+- feature extraction and seed derivation (target: Get a reproducible integer from the fingerprint data)
+    - divide preprocessed image into blocks (16x16)
+    - for each block compute mean intensity
+    - concatenate these means to feature string
+        - feature_string = mean(B1)||mean(B2)......mean(Bk)
+    - hash feature string using SHA256
+        - seed = SHA256(feature_string)
+    - convert hash to integer seed
+        - seed_int=int.from_bytes(seed, byteorder=’big’)
+
+step 3:
+- prime number generation from seed
+    - p=nextprime(seedmod1000+offset)
+    - q=nextprime((seed÷1000)mod1000+offset)
+    - p != q
+    - repeat with choosing offset until
+        - gcd(e,ϕ(N))=1
+
+step 4:
+- RSA key computation
+    - N=p×q
+    - ϕ(N)=(p−1)(q−1)
+    - e=17
+        - ensure gcd(e,ϕ(N))=1
+    - d≡e^(−1)modϕ(N)
+    - (e⋅d)modϕ(N)=1
