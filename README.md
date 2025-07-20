@@ -36,6 +36,8 @@ Can RSA-based biometric encryption systems, even those using dynamic key generat
 - Replace RSA with post quantum cryptography methods like Crytals Kyber and test the vulnerability (lattice-based encryption)
 - Scale shor’s factoring algorithm with practical and in real encryption keys
 
+## Resource Metrics
+<img width="1489" height="730" alt="image" src="https://github.com/user-attachments/assets/5bda231e-ba46-474f-b509-fbd32b25b426" />
 
 ## Contact
 A T Abbilaash - 23n201@psgtech.ac.in
