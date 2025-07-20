@@ -4,18 +4,9 @@ import numpy as np
 from qiskit.circuit import QuantumRegister, ClassicalRegister
 from math import gcd
 from qiskit.circuit.library import QFT, ModularAdderGate
-from qiskit_ibm_runtime import QiskitRuntimeService, Session, SamplerV2 as Sampler
 import random
-from qiskit.transpiler.preset_passmanagers import generate_preset_pass_manager
 from fractions import Fraction
-
-# === SETUP ACCOUNT ===
-QiskitRuntimeService.save_account(
-    channel='ibm_quantum',
-    token='73400f3fc9487c07ea601ce35f3c6a1dd052fe253283f8afced43eb1e1ce4e12852c8a281639229d84a6ffdd16034e30dda16dd7f42e0799373860910190bce1',  # ⚠️ replace with your actual saved token
-    overwrite=True
-)
-service = QiskitRuntimeService()
+from qiskit_aer import AerSimulator
 
 # === PROBLEM ===
 N = 134041
@@ -72,25 +63,18 @@ def run_shors_algorithm():
         qpe.measure(q, c)
 
         print(f"Circuit: qubits={qpe.num_qubits}, depth={qpe.depth()}")
+        print(qpe)
 
-        backend = service.least_busy(operational=True, simulator=False)
-        print(f"Using backend: {backend}")
-        print("[+] Backend fixed !!!")
-        pm = generate_preset_pass_manager(backend=backend, optimization_level=1)
-        print("[+] Generate pass manager done")
-        print("[+] pass manager running started...")
-        isa_circ = pm.run(qpe)
-        print("[+] Pass manager running done")
-        with Session(backend=backend) as session:
-            print("[+] Session started")
-            sampler = Sampler(mode=session)
-            print("[+] Sampler created")
-            print("[+] Running sampler...")
-            res = sampler.run([isa_circ], shots=1024).result()
-            print("[+] Sampler run completed")
-            from collections import Counter
-            counts = Counter(res[0].data.c.get_bitstrings())
-        print(f"Sampler job ID: {res.job_id()}")
+        print("[+] Setting up simulator...")
+        simulator = AerSimulator(method="stabilizer")
+        print("[+] Simulation setup complete.")
+        print("[+] Transpiling circuit...")
+        compiled = transpile(qpe, simulator)
+        print("[+] Circuit transpiled.")
+        print("[+] Running simulation...")
+        result = simulator.run(compiled, shots=1024).result()
+        counts = result.get_counts()
+        print("[+] Simulation complete.")
 
         sorted_meas = sorted(counts.items(), key=lambda x: x[1], reverse=True)
         print("Top 5 measurements:")

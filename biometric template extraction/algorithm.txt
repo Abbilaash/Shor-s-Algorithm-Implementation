@@ -4,7 +4,7 @@ step 1:
 - pre-processing (target: normalize the image to allow consistent feature extraction)
     - convert img to grayscale
     - resize image to fized size 128x128
-    - apply thresholding to binarize image
+    - apply thresholding to binarize image 
 
 step 2:
 - feature extraction and seed derivation (target: Get a reproducible integer from the fingerprint data)

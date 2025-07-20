@@ -1,4 +1,4 @@
-# AIM: try to design a circuit to factorize 21
+# AIM: try to design a circuit to factorize 21 (UPDATED)
 
 # present status: SUCCESS
 
@@ -8,13 +8,21 @@ from qiskit.circuit import QuantumRegister, ClassicalRegister
 from math import gcd
 from qiskit.circuit.library import QFT
 from qiskit.transpiler.preset_passmanagers import generate_preset_pass_manager
-from qiskit_ibm_runtime import QiskitRuntimeService, Session, SamplerV2 as Sampler
+from qiskit_ibm_runtime import QiskitRuntimeService, Batch, SamplerV2 as Sampler
 from fractions import Fraction
+from collections import Counter
+from dotenv import load_dotenv
+import os
+load_dotenv()
+
 
 QiskitRuntimeService.save_account(
-    channel='ibm_quantum',
-    token='73400f3fc9487c07ea601ce35f3c6a1dd052fe253283f8afced43eb1e1ce4e12852c8a281639229d84a6ffdd16034e30dda16dd7f42e0799373860910190bce1',  # ⚠️ Don't expose real tokens!
-    overwrite=True
+    channel="ibm_quantum_platform",
+    token=os.getenv("IBM_TOKEN_NEW"),
+    region="us-east",             # optional: choose region
+    plans_preference=["Open"],    # optional: plan preference
+    set_as_default=True,
+    overwrite=True,
 )
 
 N = 21
@@ -85,21 +93,18 @@ qc.measure(q,c)
 
 print(qc)
 
-backend = service.least_busy(operational=True, simulator=False)
+backend = service.least_busy(simulator=False, operational=True)
 pm = generate_preset_pass_manager(backend=backend, optimization_level=1)
-isa_circuit = pm.run(qc)
+isa_circ = pm.run(qc)
+with Batch(backend=backend) as batch:
+    sampler = Sampler(mode=batch)
+    job = sampler.run([isa_circ])
+    result = job.result()
+    print(result)
 
-with Session(backend=backend) as session:
-    sampler = Sampler(mode=session)
-    job = sampler.run([isa_circuit], shots=1024)
-    pub_result = job.result()
-
-    print(f"Sampler job ID: {job.job_id()}")
-
-    # ✅ Fixed: Correct result processing
-    from collections import Counter
-    bit_array = pub_result[0].data.c
-    counts = Counter(bit_array.get_bitstrings())
+bit_array = result[0].data.c
+bitstrings = bit_array.get_bitstrings()
+counts = Counter(bitstrings)
 
 sorted_measurements = sorted(counts.items(), key=lambda x: x[1], reverse=True)
 
