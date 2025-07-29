@@ -97,8 +97,10 @@ backend = service.least_busy(simulator=False, operational=True)
 pm = generate_preset_pass_manager(backend=backend, optimization_level=1)
 isa_circ = pm.run(qc)
 with Batch(backend=backend) as batch:
+    print(batch)
     sampler = Sampler(mode=batch)
     job = sampler.run([isa_circ])
+    print(job)
     result = job.result()
     print(result)
 
